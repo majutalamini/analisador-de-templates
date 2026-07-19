@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/maria/AppData/Local/Temp/claude/**)",
+      "Bash(find /tmp -iname \"*.png\" -mmin -30)",
+      "Read(//c/Users/maria/Downloads/**)",
+      "Bash(ls -la /tmp/668dc936-3c86-44ef-882d-b17d806226de.png /tmp/9ab04215-a06b-4bf8-87d7-783132bc6eb7.png)",
+      "Read(//tmp/**)",
+      "Bash(cygpath -w /tmp/9ab04215-a06b-4bf8-87d7-783132bc6eb7.png)",
+      "Bash(cygpath -w /tmp/668dc936-3c86-44ef-882d-b17d806226de.png)",
+      "Bash(date; echo *)",
+      "Read(//c/Users/maria/AppData/Roaming/Code/**)",
+      "Bash(node -e \"console.log\\(require\\('sharp'\\)\\)\")",
+      "Bash(convert -version)",
+      "Bash(where node *)",
+      "Bash(python -c \"import PIL; print\\(PIL.__version__\\)\")",
+      "Bash(python \"C:\\\\Users\\\\maria\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-maria-Downloads-analisador-templates-1-analisador\\\\f2b045b9-3b42-48e8-adf3-15a038deff59\\\\scratchpad\\\\make_icon.py\")"
+    ]
+  }
+}

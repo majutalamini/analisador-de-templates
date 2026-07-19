@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Analisador de Templates</title>
+<style>
+  :root {
+    --bg-1: #1a1033;
+    --bg-2: #150c29;
+    --panel: #241a44;
+    --panel-2: #2c2054;
+    --border: #3c2f68;
+    --text: #ede9fe;
+    --muted: #a99fd1;
+    --accent: #a374ff;
+    --accent-2: #7c3aed;
+    --accent-soft: rgba(163, 116, 255, 0.16);
+    --err: #ff6b8b;
+    --err-soft: rgba(255, 107, 139, 0.14);
+    --ok: #3ddc97;
+    --ok-soft: rgba(61, 220, 151, 0.14);
+    --shadow: 0 8px 24px rgba(20, 8, 50, 0.45);
+  }
+
+  * { box-sizing: border-box; }
+
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--panel-2); border-radius: 8px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent-2); }
+
+  body {
+    width: 400px;
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background:
+      radial-gradient(120% 100% at 0% 0%, rgba(163, 116, 255, 0.20), transparent 55%),
+      radial-gradient(120% 100% at 100% 0%, rgba(124, 58, 237, 0.18), transparent 50%),
+      linear-gradient(180deg, var(--bg-1), var(--bg-2));
+    color: var(--text);
+  }
+
+  header {
+    padding: 18px 18px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  header::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(163, 116, 255, 0.14), transparent 70%);
+    pointer-events: none;
+  }
+  .logo {
+    flex: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: block;
+    box-shadow: 0 4px 14px rgba(124, 58, 237, 0.55);
+  }
+  header .titles { position: relative; }
+  header h1 {
+    font-size: 15px;
+    margin: 0 0 2px;
+    font-weight: 700;
+    letter-spacing: 0.1px;
+  }
+  header p { font-size: 11.5px; color: var(--muted); margin: 0; }
+
+  main { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 16px; }
+
+  label.field {
+    display: flex;
+    flex-direction: column ;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .file-drop {
+    position: relative;
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    background: var(--panel);
+    padding: 10px 12px;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .file-drop:hover { border-color: var(--accent); background: var(--panel-2); }
+  .file-drop:has(input:focus-visible) { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+  input[type="file"] {
+    width: 100%;
+    font-size: 11.5px;
+    color: var(--text);
+    background: transparent;
+    border: none;
+    padding: 0;
+  }
+  input[type="file"]::file-selector-button {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: none;
+    border-radius: 7px;
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-right: 10px;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+  input[type="file"]::file-selector-button:hover { background: rgba(163, 116, 255, 0.28); }
+  input[type="file"]::file-selector-button:active { transform: scale(0.97); }
+
+  button#analyzeBtn {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 11px 18px;
+    font-size: 13.5px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    cursor: pointer;
+    width: 100%;
+    box-shadow: 0 6px 18px rgba(124, 58, 237, 0.35);
+    transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+  }
+  button#analyzeBtn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(124, 58, 237, 0.5); }
+  button#analyzeBtn:active:not(:disabled) { transform: translateY(0); }
+  button#analyzeBtn:disabled { opacity: 0.45; cursor: default; box-shadow: none; }
+
+  .hidden { display: none !important; }
+
+  #status {
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  #status::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+    flex: none;
+  }
+
+  #summary {
+    display: none;
+    border-radius: 10px;
+    padding: 11px 13px;
+    font-size: 13px;
+    font-weight: 700;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid transparent;
+  }
+  #summary.ok {
+    display: flex;
+    background: var(--ok-soft);
+    color: var(--ok);
+    border-color: rgba(61, 220, 151, 0.3);
+  }
+  #summary.err {
+    display: flex;
+    background: var(--err-soft);
+    color: var(--err);
+    border-color: rgba(255, 107, 139, 0.3);
+  }
+
+  .list {
+    max-height: 340px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: none;
+    background: rgba(0, 0, 0, 0.12);
+  }
+  .item {
+    padding: 11px 13px;
+    font-size: 12px;
+    border-bottom: 1px solid var(--border);
+    line-height: 1.45;
+  }
+  .item:last-child { border-bottom: none; }
+  .item:hover { background: rgba(163, 116, 255, 0.06); }
+  .item .line {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--err);
+    background: var(--err-soft);
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-bottom: 6px;
+  }
+  .item .snippet {
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 5px;
+    font-style: italic;
+  }
+
+  footer { padding: 2px 18px 18px; }
+  small.note { color: var(--muted); font-size: 10.5px; display: block; line-height: 1.5; }
+</style>
+</head>
+<body>
+  <header>
+    <img class="logo" src="icons/icon48.png" alt="Next Fit" />
+    <div class="titles">
+      <h1>Analisador de Templates</h1>
+    </div>
+  </header>
+  <main>
+    <label class="field">
+      Template do cliente a analisar (.docx)
+      <div class="file-drop">
+        <input type="file" id="targetFile" accept=".docx" />
+      </div>
+    </label>
+    <button id="analyzeBtn" disabled>Analisar template</button>
+    <div id="status" class="hidden"></div>
+    <div id="summary"></div>
+    <div class="list" id="issueList"></div>
+  </main>
+  <footer>
+  </footer>
+
+  <script src="jszip.min.js"></script>
+  <script src="linter.browser.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
